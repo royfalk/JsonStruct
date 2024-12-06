@@ -1,0 +1,12 @@
+{
+    "string_key": "hello",
+    "int_key": 1,
+    "double_key": 2.45,
+    "bool_key": true,
+    "inner": {
+        "string_key": "hello",
+        "int_key": 1,
+        "double_key": 2.45,
+        "bool_key": true
+    }
+}
