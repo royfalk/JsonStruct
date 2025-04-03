@@ -67,7 +67,7 @@ def recursive_generate_header_content(configuration, tabs):
             plug_text += inner_text
         else:
             plug_text += tabs + get_header_line(key, value)
-    return plug_text[:-1] # Remove last newline
+    return plug_text
 
 def generate_header(output_filename, configuration):
     # Read template file
