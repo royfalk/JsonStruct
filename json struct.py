@@ -101,11 +101,12 @@ def recursive_generate_cpp_content(root, configuration, chain = ''):
     plug_text = ''
     for key, value in configuration:
         if isinstance(value, dict) or isinstance(value, list):
+            old_chain = chain
             chain = key if len(chain) == 0 else f"{chain}.{key}"
 
             plug_text += f"\n\t\tboost::json::object {key}_object = {root}_object.at(\"{key}\").get_object();\n"
             plug_text += recursive_generate_cpp_content(key, value.items(), chain)
-            pass
+            chain = old_chain
         else:
             plug_text += get_read_value(root, key, value, chain)
     
