@@ -105,7 +105,7 @@ def get_read_value(root, key, value, chain):
                 {chain}{key} = boost::json::value_to<double>({key}_result.value());"""
 
     ret_val += """
-            }}
+            }
             """
 
     return ret_val
