@@ -90,29 +90,23 @@ def get_read_value(root, key, value, chain):
 
     ret_val = f"""
             const boost::system::result<const boost::json::value &> {key}_result = {root}_object.try_at("{key}");
-            if ({key}_result.has_value()) {{
-            """
+            if ({key}_result.has_value()) {{"""
     if type(value) == bool:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<bool>({key}_result.value());
-                """
+                {chain}{key} = boost::json::value_to<bool>({key}_result.value());"""
     elif type(value) == str:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<std::string>({key}_result.value());
-                """
+                {chain}{key} = boost::json::value_to<std::string>({key}_result.value());"""
     elif type(value) == int:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<int>({key}_result.value());
-                """
+                {chain}{key} = boost::json::value_to<int>({key}_result.value());"""
     elif type(value) == float:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<double>({key}_result.value());
-                """
+                {chain}{key} = boost::json::value_to<double>({key}_result.value());"""
 
     ret_val += """
             }}
-            
-    """
+            """
 
     return ret_val
 
@@ -126,14 +120,12 @@ def recursive_generate_cpp_content(root, configuration, chain = ''):
             plug_text += f"""
         const boost::system::result<const boost::json::value &> {key}_value = {root}_object.try_at("{key}");
         if ({key}_value.has_value()) {{
-            boost::json::object {key}_object = {key}_value.value().get_object();
-            """
+            boost::json::object {key}_object = {key}_value.value().get_object();"""
 
             plug_text += recursive_generate_cpp_content(key, value.items(), chain)
 
             plug_text += """
         }
-        
         
         """
 
