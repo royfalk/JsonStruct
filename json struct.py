@@ -89,20 +89,20 @@ def get_read_value(root, key, value, chain):
     t = get_type(value)
 
     ret_val = f"""
-            const boost::system::result<const boost::json::value &> {key}_result = {root}_object.try_at("{key}");
-            if ({key}_result.has_value()) {{"""
+            const boost::json::value * {key}_value_ptr = {root}_object.if_contains("{key}");
+            if ({key}_value_ptr != nullptr) {{"""
     if type(value) == bool:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<bool>({key}_result.value());"""
+                {chain}{key} = boost::json::value_to<bool>(*{key}_value_ptr);"""
     elif type(value) == str:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<std::string>({key}_result.value());"""
+                {chain}{key} = boost::json::value_to<std::string>(*{key}_value_ptr);"""
     elif type(value) == int:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<int>({key}_result.value());"""
+                {chain}{key} = boost::json::value_to<int>(*{key}_value_ptr);"""
     elif type(value) == float:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<double>({key}_result.value());"""
+                {chain}{key} = boost::json::value_to<double>(*{key}_value_ptr);"""
 
     ret_val += """
             }
@@ -118,9 +118,9 @@ def recursive_generate_cpp_content(root, configuration, chain = ''):
             chain = key if len(chain) == 0 else f"{chain}.{key}"
 
             plug_text += f"""
-        const boost::system::result<const boost::json::value &> {key}_value = {root}_object.try_at("{key}");
-        if ({key}_value.has_value()) {{
-            boost::json::object {key}_object = {key}_value.value().get_object();"""
+        const boost::json::value * {key}_value_ptr = {root}_object.if_contains("{key}");
+        if ({key}_value_ptr != nullptr) {{
+            boost::json::object {key}_object = {key}_value_ptr->get_object();"""
 
             plug_text += recursive_generate_cpp_content(key, value.items(), chain)
 
