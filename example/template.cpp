@@ -6,10 +6,36 @@
 
 #include "template.h"
 
-Config::Config(const std::string json_text) {
+vega_config::Config::Config(const std::string& json_text) {
+    load_config(json_text);
+}
+
+void vega_config::Config::load_config(const boost::filesystem::path& config_file_path) {
     try {
+        std::ifstream config_file(config_file_path.string());
+        std::string str;
+        std::string file_contents;
+        while (std::getline(config_file, str)) {
+            file_contents += str;
+            file_contents.push_back('\n');
+        }
+        load_config(file_contents);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
+
+void vega_config::Config::load_config(const std::string& json_text) {
+    try {
+        if (json_text.empty()) {
+            return;
+        }
         boost::json::value json_value = boost::json::parse(json_text);
-        boost::json::object root_object = json_value.get_object();
+        if (json_value.is_null()) {
+            return;
+        }
+        const boost::json::object & root_object = json_value.get_object();
+
 
 // JsonStruct
     }

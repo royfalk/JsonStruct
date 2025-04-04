@@ -6,9 +6,9 @@ PLACE_HOLDER = '// JsonStruct'
 HEADER_PLUG = 'template.h'
 
 INNER_STRUCT = [
-    '\tstruct {\n',
+    '    struct {\n',
     'INNER_STRUCT_PLUG\n',
-    '\t} INNER_STRUCT_NAME;\n'
+    '    } INNER_STRUCT_NAME;\n'
 ]
 
 
@@ -48,13 +48,13 @@ def get_header_line(key, value):
     t = get_type(value)
 
     if type(value) == bool:
-        return f"\tbool {key} = {str(value).lower()};\n"
+        return f"    bool {key} = {str(value).lower()};\n"
     elif type(value) == str:
-        return f"\tstd::string {key} = \"{value}\";\n"
+        return f"    std::string {key} = \"{value}\";\n"
     elif type(value) == int:
-        return f"\tint {key} = {value};\n"
+        return f"    int {key} = {value};\n"
     elif type(value) == float:
-        return f"\tdouble {key} = {value};\n"
+        return f"    double {key} = {value};\n"
 
 def recursive_generate_header_content(configuration, tabs):
     # Generate text to plug in template file
@@ -62,7 +62,7 @@ def recursive_generate_header_content(configuration, tabs):
     for key, value in configuration:    
         if isinstance(value, dict) or isinstance(value, list):
             inner_text = '\n' + tabs + INNER_STRUCT[0]
-            inner_text += INNER_STRUCT[1].replace(INNER_STRUCT_PLUG, recursive_generate_header_content(value.items(), tabs+"\t"))
+            inner_text += INNER_STRUCT[1].replace(INNER_STRUCT_PLUG, recursive_generate_header_content(value.items(), tabs+"    "))
             inner_text += tabs + INNER_STRUCT[2].replace(INNER_STRUCT_NAME, key)
             plug_text += inner_text
         else:
@@ -88,14 +88,33 @@ def get_read_value(root, key, value, chain):
     chain = chain if len(chain) == 0 else f"{chain}."
     t = get_type(value)
 
+    ret_val = f"""
+            const boost::system::result<const boost::json::value &> {key}_result = {root}_object.try_at("{key}");
+            if ({key}_result.has_value()) {{
+            """
     if type(value) == bool:
-        return f"\t\t{chain}{key} = boost::json::value_to<bool>({root}_object.at(\"{key}\"));\n"
+        ret_val += f"""
+                {chain}{key} = boost::json::value_to<bool>({key}_result.value());
+                """
     elif type(value) == str:
-        return f"\t\t{chain}{key} = boost::json::value_to<std::string>({root}_object.at(\"{key}\"));\n"
+        ret_val += f"""
+                {chain}{key} = boost::json::value_to<std::string>({key}_result.value());
+                """
     elif type(value) == int:
-        return f"\t\t{chain}{key} = boost::json::value_to<int>({root}_object.at(\"{key}\"));\n"
+        ret_val += f"""
+                {chain}{key} = boost::json::value_to<int>({key}_result.value());
+                """
     elif type(value) == float:
-        return f"\t\t{chain}{key} = boost::json::value_to<double>({root}_object.at(\"{key}\"));\n"
+        ret_val += f"""
+                {chain}{key} = boost::json::value_to<double>({key}_result.value());
+                """
+
+    ret_val += """
+            }}
+            
+    """
+
+    return ret_val
 
 def recursive_generate_cpp_content(root, configuration, chain = ''):
     plug_text = ''
@@ -104,8 +123,20 @@ def recursive_generate_cpp_content(root, configuration, chain = ''):
             old_chain = chain
             chain = key if len(chain) == 0 else f"{chain}.{key}"
 
-            plug_text += f"\n\t\tboost::json::object {key}_object = {root}_object.at(\"{key}\").get_object();\n"
+            plug_text += f"""
+        const boost::system::result<const boost::json::value &> {key}_value = {root}_object.try_at("{key}");
+        if ({key}_value.has_value()) {{
+            boost::json::object {key}_object = {key}_value.value().get_object();
+            """
+
             plug_text += recursive_generate_cpp_content(key, value.items(), chain)
+
+            plug_text += """
+        }
+        
+        
+        """
+
             chain = old_chain
         else:
             plug_text += get_read_value(root, key, value, chain)
