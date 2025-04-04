@@ -25,7 +25,7 @@ void vega_config::Config::load_config(const boost::filesystem::path& config_file
         }
         load_config(file_contents);
     } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        VS_LOG(error, (boost::format("Error in %1%: '%2%'") % __FUNCTION__ % e.what()));
     }
 }
 
@@ -45,7 +45,7 @@ void vega_config::Config::load_config(const std::string& json_text) {
     }
     catch (std::exception const& e)
     {
-        std::cerr << e.what() << std::endl;
+        VS_LOG(error, (boost::format("Error in %1%: '%2%'") % __FUNCTION__ % e.what()));
     }
 }
 
