@@ -10,6 +10,10 @@ vega_config::Config::Config(const std::string& json_text) {
     load_config(json_text);
 }
 
+vega_config::Config::Config(const boost::filesystem::path& config_file_path) {
+    load_config(config_file_path);
+}
+
 void vega_config::Config::load_config(const boost::filesystem::path& config_file_path) {
     try {
         std::ifstream config_file(config_file_path.string());
