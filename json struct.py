@@ -55,7 +55,7 @@ def get_header_line(key, value):
     elif type(value) == int:
         return f"    int {key} = {value};\n"
     elif type(value) == float:
-        return f"    double {key}_dbl = {value};\n    float {key}_flt = {value};\n"
+        return f"    double {key}_dbl = {value};\n        float {key}_flt = {value};\n"
     else:
         return ""
 
@@ -64,9 +64,9 @@ def recursive_generate_header_content(configuration, tabs):
     # Generate text to plug in template file
     plug_text = ''
     for key, value in configuration:
+        if key == 'controls':
+            pass
         if isinstance(value, dict) or isinstance(value, list):
-            if key == 'controls':
-                return plug_text
             inner_text = '\n' + tabs + INNER_STRUCT[0]
             inner_text += INNER_STRUCT[1].replace(INNER_STRUCT_PLUG,
                                                   recursive_generate_header_content(value.items(), tabs + "    "))
