@@ -66,6 +66,9 @@ def recursive_generate_header_content(configuration, tabs):
     for key, value in configuration:
         if key == 'controls':
             pass
+
+        key = key.replace('::', '__')
+
         if isinstance(value, dict) or isinstance(value, list):
             inner_text = '\n' + tabs + INNER_STRUCT[0]
             inner_text += INNER_STRUCT[1].replace(INNER_STRUCT_PLUG,
@@ -96,6 +99,7 @@ def generate_header(output_filename, configuration):
 def get_read_value(root, key, value, chain):
     chain = chain if len(chain) == 0 else f"{chain}."
     t = get_type(value)
+    key = key.replace('::', '__')
 
     ret_val = f"""
             const boost::json::value * {key}_value_ptr = {root}_object.if_contains("{key}");
@@ -124,6 +128,7 @@ def get_read_value(root, key, value, chain):
 def recursive_generate_cpp_content(root, configuration, chain=''):
     plug_text = ''
     for key, value in configuration:
+        key = key.replace('::', '__')
         if isinstance(value, dict) or isinstance(value, list):
             old_chain = chain
             chain = key if len(chain) == 0 else f"{chain}.{key}"
