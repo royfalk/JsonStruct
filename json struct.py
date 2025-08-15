@@ -55,13 +55,20 @@ def get_header_line(key, value):
     elif type(value) == int:
         return f"    int {key} = {value};\n"
     elif type(value) == float:
-        return f"    double {key} = {value};\n"
+        return f"    double {key}_dbl = {value};\n        float {key}_flt = {value};\n"
+    else:
+        return ""
 
 
 def recursive_generate_header_content(configuration, tabs):
     # Generate text to plug in template file
     plug_text = ''
     for key, value in configuration:
+        if key == 'controls':
+            pass
+
+        key = key.replace('::', '__')
+
         if isinstance(value, dict) or isinstance(value, list):
             inner_text = '\n' + tabs + INNER_STRUCT[0]
             inner_text += INNER_STRUCT[1].replace(INNER_STRUCT_PLUG,
@@ -76,7 +83,7 @@ def recursive_generate_header_content(configuration, tabs):
 def generate_header(output_filename, configuration):
     # Read template file
     text = ''
-    with open('template.h', 'r') as file:
+    with open('template.h', mode='r', encoding='utf-8') as file:
         text = file.read()
 
     # Generate text to plug in template file
@@ -85,13 +92,14 @@ def generate_header(output_filename, configuration):
     # Insert plug text into text and generate header file
     if PLACE_HOLDER in text:
         text = text.replace(PLACE_HOLDER, plug_text)
-        with open(output_filename + '.h', 'w') as file:
+        with open(output_filename + '.h', mode='w', encoding='utf-8') as file:
             file.write(text)
 
 
 def get_read_value(root, key, value, chain):
     chain = chain if len(chain) == 0 else f"{chain}."
     t = get_type(value)
+    key = key.replace('::', '__')
 
     ret_val = f"""
             const boost::json::value * {key}_value_ptr = {root}_object.if_contains("{key}");
@@ -107,7 +115,8 @@ def get_read_value(root, key, value, chain):
                 {chain}{key} = boost::json::value_to<int>(*{key}_value_ptr);"""
     elif type(value) == float:
         ret_val += f"""
-                {chain}{key} = boost::json::value_to<double>(*{key}_value_ptr);"""
+                {chain}{key}_dbl = boost::json::value_to<double>(*{key}_value_ptr);
+                {chain}{key}_flt = boost::json::value_to<float>(*{key}_value_ptr);"""
 
     ret_val += """
             }
@@ -119,6 +128,7 @@ def get_read_value(root, key, value, chain):
 def recursive_generate_cpp_content(root, configuration, chain=''):
     plug_text = ''
     for key, value in configuration:
+        key = key.replace('::', '__')
         if isinstance(value, dict) or isinstance(value, list):
             old_chain = chain
             chain = key if len(chain) == 0 else f"{chain}.{key}"
@@ -145,7 +155,7 @@ def recursive_generate_cpp_content(root, configuration, chain=''):
 def generate_cpp_file(output_filename, configuration):
     # Read template file
     text = ''
-    with open('template.cpp', 'r') as file:
+    with open('template.cpp', mode='r', encoding='utf-8') as file:
         text = file.read()
 
     # Modify include statement
@@ -159,7 +169,7 @@ def generate_cpp_file(output_filename, configuration):
     if PLACE_HOLDER in text:
         text = text.replace(PLACE_HOLDER, plug_text)
 
-        with open(output_filename + '.cpp', 'w') as file:
+        with open(output_filename + '.cpp', mode='w', encoding='utf-8') as file:
             file.write(text)
 
 
@@ -167,7 +177,7 @@ if __name__ == "__main__":
     json_filename, output_filename = parse_arguments()
 
     configuration = []
-    with open(json_filename) as json_file:
+    with open(json_filename, mode='r', encoding='utf-8') as json_file:
         map = json.load(json_file)
         configuration = map.items()
 
